@@ -1,0 +1,39 @@
+<html>
+	<head>
+		<title>Expression Parser</title>
+		<link rel="stylesheet" type="text/css" href="css/ep.css">
+		<script type="text/javascript" src="js/ExpressionParser.js"></script>
+		<script type="text/javascript">
+			var ep;
+			function parseExpression(expression) {
+				ep = new ExpressionParser();
+				try {
+					ep.parse(expression);
+					addOutput(
+						ep.expression() + ' = ' + ep.value() + '<br>' +
+						ep.printTree()
+					);
+				} catch(e) {
+					addOutput(e);
+				}
+			}
+			function addOutput(output) {
+				var out = document.getElementById('output');
+				var div = document.createElement('div');
+				div.setAttribute('class', 'output');
+				div.innerHTML = output;
+				out.insertBefore(div, out.firstChild);
+			}
+			function input(target, e) {
+				if(e.keyCode == 13) { // Enter
+					parseExpression(target.value);
+					target.value = '';
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<input id="expression" onkeyup="input(this, event);" style="width: 100%"><br>
+		<div id="output"></div>
+	</body>
+</html>

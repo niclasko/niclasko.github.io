@@ -1,0 +1,149 @@
+<html>
+	<head>
+		<title>Mine Sweeper</title>
+		<link rel="stylesheet" type="text/css" href="css/minesweeper.css">
+		<script type="text/javascript" src="js/MineSweeper.js"></script>
+		<script type="text/javascript">
+			var mineSweeper, mineField;
+			var rows = 10, columns = 10, mines = 10;
+			function init() {
+				document.getElementById('rows').value = rows;
+				document.getElementById('columns').value = columns;
+				document.getElementById('mines').value = mines;
+				setMaxMines();
+				setup(10, 10, 15);
+			}
+			function setup(rows, columns, mines) {
+				mineSweeper = new MineSweeper(rows, columns, mines);
+				mineSweeper.initialize();
+				mineField = document.createElement('table');
+				mineField.setAttribute('class', 'minefield');
+				var row, cell, cellImg;
+				for(var i=0; i<mineSweeper.getRows(); i++) {
+					row = document.createElement('tr');
+					for(var j=0; j<mineSweeper.getColumns(); j++) {
+						cell = document.createElement('td');
+						cellImg = document.createElement('img');
+						cell.setAttribute(
+							'onclick',
+							'probeMineField(' + i + ', ' + j + ')'
+						);
+						cellImg.setAttribute(
+							'src',
+							'images/covered.gif'
+						);
+						cell.appendChild(cellImg);
+						row.appendChild(cell);
+					}
+					mineField.appendChild(row);
+				}
+				var mineFieldPanel = document.getElementById('mineFieldPanel');
+				if(mineFieldPanel.childElementCount == 1) {
+					mineFieldPanel.childNodes[0].remove();
+				}
+				mineFieldPanel.appendChild(mineField);
+			}
+			function probeMineField(x, y) {
+				mineSweeper.probeCell(x, y);
+				paintMineField();
+			}
+			function changeMineFieldCell(x, y, imageSrc) {
+				mineField.childNodes[x].childNodes[y].childNodes[0].setAttribute(
+					'src',
+					imageSrc
+				);
+			}
+			function paintMineField() {
+				for(var i=0; i<mineSweeper.getRows();i++) {
+					for(var j=0; j<mineSweeper.getColumns(); j++) {
+						if(mineSweeper.covered(i, j)) {
+							changeMineFieldCell(i, j, 'images/covered.gif');
+						} else if(!mineSweeper.covered(i, j)) {
+							switch(mineSweeper.cellContents(i, j)) {
+								case -1:
+									changeMineFieldCell(i, j, 'images/mine.gif');
+									break;
+								case 0:
+									changeMineFieldCell(i, j, 'images/uncovered.gif');
+									break;
+								case 1:
+									changeMineFieldCell(i, j, 'images/1.gif');
+									break;
+								case 2:
+									changeMineFieldCell(i, j, 'images/2.gif');
+									break;
+								case 3:
+									changeMineFieldCell(i, j, 'images/3.gif');
+									break;
+								case 4:
+									changeMineFieldCell(i, j, 'images/4.gif');
+									break;
+								case 5:
+									changeMineFieldCell(i, j, 'images/5.gif');
+									break;
+								case 6:
+									changeMineFieldCell(i, j, 'images/6.gif');
+									break;
+								case 7:
+									changeMineFieldCell(i, j, 'images/7.gif');
+									break;
+								case 8:
+									changeMineFieldCell(i, j, 'images/8.gif');
+									break;
+								default:
+									break;
+							}
+						}
+					}
+					if(mineSweeper.gameOver()) {
+						alert('Game Over!');
+						return;
+					}
+				}
+			}
+			function getRows() {
+				return parseInt(document.getElementById('rows').value);
+			}
+			function getColumns() {
+				return parseInt(document.getElementById('columns').value);
+			}
+			function getMines() {
+				return parseInt(document.getElementById('mines').value);
+			}
+			function setMaxMines() {
+				var _rows = (!getRows ? rows : getRows()), _columns = (!getColumns ? columns : getColumns());
+				document.getElementById('mines').max = Math.round(rows*columns*0.7);
+			}
+		</script>
+	</head>
+	<body onload="init();">
+		<div id="parameters">
+			<table>
+				<tr>
+					<td>Rows</td>
+					<td>
+						<input id="rows" type="number" min="5" max="30" step="1" value ="10" onkeypress="event.preventDefault();"/>
+					</td>
+				</tr>
+				<tr>
+					<td>Columns</td>
+					<td>
+						<input id="columns" type="number" min="5" max="30" step="1" value ="10" onkeypress="event.preventDefault();"/>
+					</td>
+				</tr>
+				<tr>
+					<td>Mines</td>
+					<td>
+						<input id="mines" type="number" min="1" max="1" step="1" value ="10" onkeypress="event.preventDefault();"/>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<input type="button" value="Reset" style="width: 70px;" onclick="setup(getRows(), getColumns(), getMines());"/>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div id="mineFieldPanel"></div>
+	</body>
+</html>

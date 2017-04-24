@@ -1,0 +1,28 @@
+body {
+	font-size: small;
+	font-family: Arial;
+}
+
+a.toplinks {
+	font-size: x-small;
+	font-family: Courier;
+}
+
+a:link {
+	color: gray;
+}
+
+/* visited link */
+a:visited {
+	color: gray;
+}
+
+/* mouse over link */
+a:hover {
+	color: gray;
+}
+
+/* selected link */
+a:active {
+	color: gray;
+}

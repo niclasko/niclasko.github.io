@@ -1,0 +1,21 @@
+body {
+	font-size: x-small;
+	font-family: Arial;
+}
+
+table.minefield {
+	border: 0px;
+	border-spacing: 0px;
+	border-collapse: separate;
+}
+
+td {
+	padding: 0px;
+	font-size: x-small;
+	font-family: Arial;
+}
+
+input {
+	width: 35px;
+	height: 18px;
+}
