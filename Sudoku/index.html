@@ -1,0 +1,139 @@
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Sudoku.js</title>
+		<link rel="stylesheet" type="text/css" href="css/web.css">
+		<script type="text/javascript" src="js/Sudoku.js"></script>
+		<script type="text/javascript">
+			
+			const DOMAIN_SIZE = 9;
+			const ALLOWED_PATTERN = "^[1-" + DOMAIN_SIZE + "]$";
+			
+			var sudoku = new Sudoku(DOMAIN_SIZE);
+			
+			function init() {
+				draw();
+			}
+			function drawCellDomain(row, column) {
+				var cellDomain = sudoku.getCellDomain(row, column);
+				var html = "<table class=\"cellDomain\">";
+				for(var i=0; i<DOMAIN_SIZE; i++) {
+					if(i % 3 == 0) {
+						html += "<tr>";
+					}
+					html += "<td class=\"cellDomain\">" + (cellDomain[i+1] ? i+1 : "") + "</td>";
+					if((i+1) % 3 == 0) {
+						html += "</tr>";
+					}
+				}
+				html += "</table>";
+				return html;
+			}
+			function updateVisibleCellDomain(row, column) {
+				var cellDomainDiv = document.getElementById("cd_r" + row + "c" + column);
+				if(sudoku.getCellValue(row, column)) {
+					cellDomainDiv.innerHTML = "";
+					return;
+				}
+				cellDomainDiv.innerHTML = drawCellDomain(row, column);
+			}
+			function draw() {
+				var sudokuTable = "<table>";
+				
+				for(var i=0; i<DOMAIN_SIZE; i++) {
+					sudokuTable += "<tr>";
+					for(var j=0; j<DOMAIN_SIZE; j++) {
+						sudokuTable +=
+							"<td class=\"r" + i + " c" + j + "\">" +
+								"<div class=\"boardCell\">" +
+										"<div class=\"boardCellInput\">" +
+											"<input id=\"r" + i + "c" + j + "\" data-row=\"" + i + "\" data-column=\"" + j + "\" " +
+											"type=\"text\" size=\"1\" onkeydown=\"save(event);\" " +
+											"onkeyup=\"checkInput(event);\">" +
+										"</div>" +
+										"<div id=\"cd_r" + i + "c" + j + "\" class=\"boardCellDomain\">" +
+											drawCellDomain(i, j) +
+										"</div>" +
+								"</div>" +
+							"</td>";
+					}
+					sudokuTable += "</tr>";
+				}
+				
+				sudokuTable += "</table>";
+				document.getElementById("sudokuBoard").innerHTML = sudokuTable;
+			}
+			function save(evt) {
+				if(evt.target.value.match(ALLOWED_PATTERN) || evt.target.value == "") {
+					evt.target.previousValue = evt.target.value;
+				}
+			}
+			function checkInput(evt) {
+				output("");
+				var t = evt.target;
+				if(move(t, evt.keyCode)) {
+					return;
+				}
+				if(!t.value.match(ALLOWED_PATTERN) && t.value != "") {
+					t.value = (t.previousValue ? t.previousValue : "");
+					if(!t.value.match(ALLOWED_PATTERN)) {
+						t.value = null;
+					}
+				}
+				try {
+					sudoku.setCell(
+						parseInt(t.getAttribute("data-row")),
+						parseInt(t.getAttribute("data-column")),
+						parseInt(t.value) || null
+					);
+				} catch(e) {
+					output(e);
+					t.value = t.previousValue;
+				}
+			}
+			function move(from, keyCode) {
+				var left = 37, up = 38, right = 39, down = 40;
+				
+				var row = parseInt(from.getAttribute("data-row"));
+				var column = parseInt(from.getAttribute("data-column"));
+				
+				var toRow = row, toColumn = column, changed = false;
+				
+				switch(keyCode) {
+					case left:
+						toColumn -= 1;
+						changed = true;
+						break;
+					case right:
+						toColumn += 1;
+						changed = true;
+						break;
+					case up:
+						toRow -= 1;
+						changed = true;
+						break;
+					case down:
+						toRow += 1;
+						changed = true;
+						break;
+					default:
+						return false;
+				}
+				
+				if((0 <= toColumn && toColumn < 9) && (0 <= toRow && toRow < 9) && changed) {
+					var moveToTarget = document.getElementById("r" + toRow + "c" + toColumn);
+					moveToTarget.focus();
+					moveToTarget.setSelectionRange(0, moveToTarget.value.length);
+					return true;
+				}
+			}
+			function output(message) {
+				document.getElementById("output").innerHTML = message;
+			}
+		</script>
+	</head>
+	<body onload="init();">
+		<div id="sudokuBoard"></div>
+		<div id="output"></div>
+	</body>
+</html>
