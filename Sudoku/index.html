@@ -12,6 +12,11 @@
 			var sudoku = new Sudoku(DOMAIN_SIZE);
 			
 			function init() {
+				// Prevent scrolling on mobile browsers
+				document.body.addEventListener("touchmove", function(event) {
+					event.preventDefault();
+					event.stopPropagation();
+				}, false);
 				draw();
 			}
 			function drawCellDomain(row, column) {
