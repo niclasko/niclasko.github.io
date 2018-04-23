@@ -12,10 +12,12 @@
 			var sudoku = new Sudoku(DOMAIN_SIZE);
 			
 			function init() {
-				// Prevent scrolling on mobile browsers
-				document.body.addEventListener("touchmove", function(event) {
+				// Prevent focus scrolling on mobile browsers
+				document.body.addEventListener("focusin", function(event) {
 					event.preventDefault();
-					event.stopPropagation();
+				}, false);
+				document.body.addEventListener("focus", function(event) {
+					event.preventDefault();
 				}, false);
 				draw();
 			}
