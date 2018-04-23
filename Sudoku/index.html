@@ -12,6 +12,7 @@
 			var sudoku = new Sudoku(DOMAIN_SIZE);
 			
 			function init() {
+				draw();
 				// Prevent focus scrolling on mobile browsers
 				document.body.addEventListener("focusin", function(event) {
 					event.preventDefault();
@@ -19,7 +20,6 @@
 				document.body.addEventListener("focus", function(event) {
 					event.preventDefault();
 				}, false);
-				draw();
 			}
 			function drawCellDomain(row, column) {
 				var cellDomain = sudoku.getCellDomain(row, column);
