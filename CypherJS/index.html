@@ -22,7 +22,8 @@
 					(window.location.href.split('?')[1]
 				    );
 				
-				if(urlCypherQueryParameter) {
+				if(urlCypherQueryParameter && urlCypherQueryParameter.length > 0) {
+					setInput(urlCypherQueryParameter);
 					query(urlCypherQueryParameter);	
 				}
 			}
