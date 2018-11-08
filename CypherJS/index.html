@@ -18,11 +18,11 @@
 				output = document.getElementById('output');
 				
 				var urlCypherQueryParameter =
-				    decodeURIComponent
-					(window.location.href.split('?')[1]
+				    decodeURIComponent(
+					window.location.href.split('?')[1]
 				    );
 				
-				if(urlCypherQueryParameter && urlCypherQueryParameter.length > 0) {
+				if(urlCypherQueryParameter != undefined && urlCypherQueryParameter.length > 0) {
 					setInput(urlCypherQueryParameter);
 					query(urlCypherQueryParameter);	
 				}
