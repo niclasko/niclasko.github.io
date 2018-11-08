@@ -16,6 +16,15 @@
 				cypher = new Cypher({runInWebWorker: true});
 				queryInput = document.getElementById('cypherQuery');
 				output = document.getElementById('output');
+				
+				var urlCypherQueryParameter =
+				    decodeURIComponent
+					(window.location.href.split('?')[1]
+				    );
+				
+				if(urlCypherQueryParameter) {
+					query(urlCypherQueryParameter);	
+				}
 			}
 			
 			function setInput(q) {
