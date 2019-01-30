@@ -1,0 +1,49 @@
+body {
+	font-size: small;
+	font-family: Arial;
+}
+
+div.info {
+	font-size: small;
+	font-family: Arial;
+}
+
+a:link {
+	color: gray;
+}
+
+/* visited link */
+a:visited {
+	color: gray;
+}
+
+/* mouse over link */
+a:hover {
+	color: gray;
+}
+
+/* selected link */
+a:active {
+	color: gray;
+}
+
+td, th {
+	vertical-align: top;
+	text-align: left;
+}
+
+table {
+	font-size: x-small;
+	font-family: Arial;
+}
+
+div.infobox {
+	font-size: x-small;
+	font-family: Arial;
+	padding: 10px;
+	border: 1px solid rgb(77, 77, 77);
+	color: rgb(26, 26, 26);
+	background: rgba(255, 255, 255, 0.7);
+	border-radius: 2px;
+	width: auto;
+}

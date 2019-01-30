@@ -1,0 +1,259 @@
+<html>
+	<head>
+		<title>PCA clustering</title>
+		<link rel="stylesheet" type="text/css" href="css/web.css">
+		<script type="text/javascript" src="js/vis.js"></script>
+		<script type="text/javascript" src="js/jquery.min.js"></script>
+		<script src="js/d3.v3.min.js" charset="utf-8"></script>
+		
+		<script type="text/javascript">
+			
+			var csv_data = null;
+			var pca_lookup = {};
+			
+			function initialize() {
+				
+				d3.csv("data/pca_info.csv", function (data) {
+					d3.csv("data/pca_clustering.csv", function (d) {
+						csv_data = d;
+						drawVisualization();
+						var entry;
+						for(var i=0; i<data.length; i++) {
+							entry = data[i];
+							if(pca_lookup[entry.pca_id]) {
+								pca_lookup[entry.pca_id].description = entry.pca_description;
+								pca_lookup[entry.pca_id].product_family = entry.product_family;
+								pca_lookup[entry.pca_id].business_unit = entry.business_unit;
+								pca_lookup[entry.pca_id].technology_group = entry.technology_group;
+							}
+						}
+					});
+				});
+				
+			}
+			
+			function neo4jQuery(query, parameters, callback) {
+				
+				var neo4j_host = 'http://173.36.84.94:7474';
+				
+				$.ajax({
+					type: "POST",
+					url: neo4j_host + "/db/data/cypher",
+					accepts: { json: "application/json" },
+					dataType: "json",
+					contentType: "application/json",
+					authorization: 'Basic ' + window.btoa('neo4j:Cloud123'),
+					data: JSON.stringify({ "query" : query, "params": parameters}),
+					success: function(result) {
+						callback(result.data);
+					}
+				});
+			}
+			
+			function pcaInfo(dot) {
+				
+				return  '<b>PCA_ID:</b> ' + dot.pca_id + '<br>' +
+					'<b>Description:</b> ' + pca_lookup[dot.pca_id].description + '<br>' +
+					'<b>SVD projection coordinates:</b><br>' +
+					'&nbsp;<b>x:</b> ' + dot.x + '<br>' +
+					'&nbsp;<b>y:</b> ' + dot.y + '<br>' +
+					'&nbsp;<b>z:</b> ' + dot.z + '<br>' +
+					'<b>Cluster Id:</b> ' + dot.cluster;
+				
+			}
+			
+			function blankIfUndefined(val) {
+				return val == undefined ? '' : val;
+			}
+			
+			function showSimilar(evt) {
+				
+				if(evt.target != $('#tooltip_pca_id').parent().next().next()[0]) {
+					return;
+				}
+				
+				var selected_pca_dot =
+					pca_lookup[$('#tooltip_pca_id').attr('data-id')];
+				
+				$('#infoHeader').html(
+					'<div class="infobox">' + pcaInfo(selected_pca_dot) + '</div>'
+				);
+				
+				$('#svdSimilarPCAs').html('');
+				
+				var simMat = svd_similarity(selected_pca_dot);
+				
+				var html = "<table><tr><th colspan=\"3\">Similar PCA's from SVD projection clustering</th></tr>";
+				html += "<tr><th>PCA ID</th><th>Description</th><th>3D projection distance</th><th>Cluster Id</th><th>Product Family</th><th>Business Unit</th></tr>";
+				for(var i=0; i<simMat.length; i++) {
+					html +=
+						'<tr><td>' + simMat[i].pca.pca_id + '</td>' +
+						'<td>' + blankIfUndefined(pca_lookup[simMat[i].pca.pca_id].description) + '</td>' +
+						'<td>' + simMat[i].distance + '</td>' +
+						'<td style="color: ' + colors[simMat[i].pca.cluster] + ';"><b>' + simMat[i].pca.cluster + '</b></td>' +
+						'<td>' + blankIfUndefined(pca_lookup[simMat[i].pca.pca_id].product_family) + '</td>' +
+						'<td>' + blankIfUndefined(pca_lookup[simMat[i].pca.pca_id].business_unit) + '</td>' +
+						'</tr>';
+				}
+				html += '</table>';
+				$('#svdSimilarPCAs').html(html);
+				
+				// Alternative
+				/*var query =
+					'match (pca:Component{segment1:{PCA_ID}})<-[:ASSEMBLY]-(pca_cpn:Component) ' +
+					'with pca, collect(pca_cpn) as pca_cpns ' +
+					'match (pca)<-[:ASSEMBLY]-(shared_cpn:Component)-[:ASSEMBLY]->(other_pca:Component) ' +
+					'with pca, other_pca, pca_cpns, shared_cpn, split(pca.segment1,"-") as pp, split(other_pca.segment1,"-") as opp ' +
+					'where pca <> other_pca and pp[0] <> opp[0] and pp[1] <> opp[1] ' +
+					'with pca, pca_cpns, other_pca, collect(shared_cpn) as shared_cpns ' +
+					'order by size(shared_cpns) desc limit 10 ' +
+					'return {pca: pca.description, similar: collect({pca_id: other_pca.segment1, pca_description: other_pca.description, pct_cpns_in_common: 1.0*size(shared_cpns)/size(pca_cpns)})}';*/
+				
+				var query =
+					'match (pca:Component{segment1:{PCA_ID}})<-[:ASSEMBLY]-(pca_cpn:Component) ' +
+					'with pca, collect(pca_cpn) as pca_cpns ' +
+					'unwind pca_cpns as pca_cpn ' +
+					'match (pca_cpn)-[:ASSEMBLY]->(other_pca:Component) ' +
+					'where pca <> other_pca ' +
+					'with pca, pca_cpns, other_pca, collect(pca_cpn) as shared_cpns ' +
+					'order by size(shared_cpns) desc limit 10 ' +
+					'return {pca: pca.description, similar: collect({pca_id: other_pca.segment1, pca_description: other_pca.description, pct_cpns_in_common: 1.0*size(shared_cpns)/size(pca_cpns), cpns_in_common_count: size(shared_cpns)})}';
+					
+				$('#Neo4jSimilarPCAs').html("<br>Fetching similar PCA's from Neo4j Graph BOM database...");
+				
+				neo4jQuery(
+					query,
+					{"PCA_ID": selected_pca_dot.pca_id},
+					function(data) {
+						var similarPcas = data[0][0].similar, cluster;
+						var html = "<table><tr><th colspan=\"3\">Similar PCA's from Neo4j Graph BOM database</th></tr>";
+						html += "<tr><th>PCA ID</th><th>Description</th><th>% CPN's in common</th><th>Cluster Id</th></tr>";
+						for(var i in similarPcas) {
+							if(pca_lookup[similarPcas[i].pca_id]) {
+								cluster =
+									'<td style="color: ' + colors[pca_lookup[similarPcas[i].pca_id].cluster] + ';"><b>' + pca_lookup[similarPcas[i].pca_id].cluster + '</b></td>';
+							} else {
+								cluster =
+									'<td><b>Unknown</b></td>'
+							}
+							html +=
+								'<tr><td>' + similarPcas[i].pca_id + '</td>' +
+								'<td>' + similarPcas[i].pca_description + '</td>' +
+								'<td>' + similarPcas[i].pct_cpns_in_common*100 + ', (# shared: ' + similarPcas[i].cpns_in_common_count + ')</td>' +
+								cluster +
+								'</tr>';
+						}
+						html += '</table>';
+						$('#Neo4jSimilarPCAs').html(html);
+					}
+				);
+			}
+			
+			var colors =
+				["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
+			
+			// Called when the Visualization API is loaded.
+			function drawVisualization() {
+				
+				// create the data table.
+				var data = new vis.DataSet();
+
+				// create some shortcuts to math functions
+				var sqrt = Math.sqrt;
+				var pow = Math.pow;
+				var random = Math.random;
+
+				// create the animation data
+				for (var i = 0; i < csv_data.length; i++) {
+					csv_data[i].x = parseFloat(csv_data[i].x);
+					csv_data[i].y = parseFloat(csv_data[i].y);
+					csv_data[i].z = parseFloat(csv_data[i].z);
+					csv_data[i].cluster = parseInt(csv_data[i].cluster);
+					
+					pca_lookup[csv_data[i].pca_id] = csv_data[i];
+					
+					data.add(
+						{
+							x: csv_data[i].x,
+							y: csv_data[i].y,
+							z: csv_data[i].z,
+							style: colors[csv_data[i].cluster],
+							pca_id: csv_data[i].pca_id,
+							cluster: csv_data[i].cluster
+						}
+					);
+				}
+
+				// specify options
+				var options = {
+					width:  '600px',
+					height: '600px',
+					style: 'dot-color',
+					showPerspective: true,
+					showGrid: true,
+					keepAspectRatio: true,
+					verticalRatio: 1.0,
+					hideNodesOnDrag: true,
+					dotSizeRatio: 0.002,
+					showLegend: false,
+					tooltip: function(source) {
+						return '<span id="tooltip_pca_id" data-id="' + source.data.pca_id + '">' + pcaInfo(source.data) + '</span>';
+					},
+					cameraPosition: {
+						horizontal: -0.35,
+						vertical: 0.22,
+						distance: 1.8
+					}
+				};
+				// create our graph
+				var container = document.getElementById('mygraph');
+				var graph = new vis.Graph3d(container, data, options);
+			}
+			
+			function svd_similarity(pca_dot) {
+				var similarityMatrix = [];
+				for(var i=0; i<csv_data.length; i++) {
+					if(pca_dot.pca_id == csv_data[i].pca_id) {
+						continue;
+					}
+					similarityMatrix.push(
+						{
+							pca: csv_data[i],
+							distance: // Manhattan distance
+								(Math.abs(csv_data[i].x-pca_dot.x) +
+									Math.abs(csv_data[i].y-pca_dot.y) +
+									Math.abs(csv_data[i].z-pca_dot.z))
+						}
+					);
+				}
+				similarityMatrix.sort(
+					function(a, b) {
+						return a.distance - b.distance;
+					}
+				);
+				return similarityMatrix.splice(0,10);
+			}
+			
+		</script>
+		
+	</head>
+	<body onload="initialize();">
+		<h4>Printed Circuit Assembly clustering based on shared components</h4>
+		<p>Singular Value Decomposition of a 11772 (PCA) * 75982 (CPN) matrix, with 3 left and 3 right singular vectors. The original matrix was then projected onto the 3 right singular vectors in order to reduce the dimensionality from 75982 to 3. Finally, the projection was clustered using K-Means algorithm (with K=14, each cluster has a distinct color) and visualised in a 3d scatter plot below. Mouse-over PCA points in scatter plot to get PCA info and click for more info. PCA points that are close in 3D space have more CPN's in common than PCA points that are further apart. Click+drag to rotate 3d scatter and zoom using mouse pad. Use below for explorative analysis of Cisco's PCA space. More to come...</p>
+		<div>Niclas Kj&auml;ll-Ohlsson, <a href="mailto:nkjalloh@cisco.com">nkjalloh@cisco.com</a></div>
+		<table>
+			<tr>
+				<td>
+					<div id="mygraph" onclick="showSimilar(event);"></div>
+				</td>
+				<td>
+					<div class="info">
+						<div id="infoHeader"></div>
+						<div id="svdSimilarPCAs"></div>
+						<div id="Neo4jSimilarPCAs"></div>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
