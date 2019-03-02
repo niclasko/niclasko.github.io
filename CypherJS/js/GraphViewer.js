@@ -4,7 +4,7 @@ var GraphViewer = function(options) {
 		var nodeIds = {};
 		var groupId = 1;
 		var labelToGroupId = {};
-		for(var ix in nodes) {
+		for(var ix=0; ix<nodes.length; ix++) {
 			nodeIds[nodes[ix].id] = ix;
 			nodes[ix].group = 
 				(nodes[ix].labels.length > 0 && 
