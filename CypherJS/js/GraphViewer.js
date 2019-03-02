@@ -10,10 +10,6 @@ var GraphViewer = function(options) {
 				(nodes[ix].labels.length > 0 && 
 					(labelToGroupId[nodes[ix].labels[0]] || (labelToGroupId[nodes[ix].labels[0]] = groupId++))) || 0;
 		}
-		for(var ix in links) {
-			links[ix].source = nodeIds[links[ix].fromNode.id()];
-			links[ix].target = nodeIds[links[ix].toNode.id()];
-		}
 		return {nodes: nodes, links: links};
 	};
 	
