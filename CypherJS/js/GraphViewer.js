@@ -8,7 +8,7 @@ var GraphViewer = function(options) {
 			nodeIds[nodes[ix].id] = ix;
 			nodes[ix].group = 
 				(nodes[ix].labels.length > 0 && 
-					(labelToGroupId[nodes[ix].labels[0]] ||Â (labelToGroupId[nodes[ix].labels[0]] = groupId++))) ||Â 0;
+					(labelToGroupId[nodes[ix].labels[0]] || (labelToGroupId[nodes[ix].labels[0]] = groupId++))) || 0;
 		}
 		for(var ix=0; ix<links.length; ix++) {
 			links[ix].source = nodeIds[links[ix].source];
