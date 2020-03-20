@@ -1,21 +1,40 @@
-// DAG editor: http://bl.ocks.org/rkirsling/5001347
 var GraphViewer = function(options) {
 	
+	var groupId = 1;
+	var labels;
+	var labelInfo = {};
+
 	var preprocessGraphData = function(nodes, links) {
 		var nodeIds = {};
-		var groupId = 1;
-		var labelToGroupId = {};
+		
+		var label;
 		for(var ix=0; ix<nodes.length; ix++) {
+			label = nodes[ix].labels[0] || "No Label";
 			nodeIds[nodes[ix].id] = ix;
-			nodes[ix].group = 
-				(nodes[ix].labels.length > 0 && 
-					(labelToGroupId[nodes[ix].labels[0]] || (labelToGroupId[nodes[ix].labels[0]] = groupId++))) || 0;
+			if(labelInfo[label] == undefined) {
+				labelInfo[label] = {group: groupId++, count: 0};
+			}
+			nodes[ix].group = labelInfo[label].group;
+			labelInfo[label].count++;
 		}
 		for(var ix=0; ix<links.length; ix++) {
 			links[ix].source = nodeIds[links[ix].source];
 			links[ix].target = nodeIds[links[ix].target];
 		}
+		labels = Object.keys(labelInfo);
 		return {nodes: nodes, links: links};
+	};
+
+	this.groups = function() {
+		return groupId;
+	};
+
+	this.label = function(index) {
+		return labels[index];
+	};
+
+	this.labelCount = function(index) {
+		return labelInfo[labels[index]].count;
 	};
 	
 	this.graphData = preprocessGraphData(
@@ -28,6 +47,7 @@ var GraphViewer = function(options) {
 };
 
 GraphViewer.prototype.draw = function() {
+	var self = this;
 	var svg = d3.select(this.container).append("svg");
 	svg.attr("width",  "100%");
 	svg.attr("height", 300);
@@ -36,7 +56,7 @@ GraphViewer.prototype.draw = function() {
 	
 	var width = dims.width;
 	var height = dims.height;
-	var radius = 3;
+	var radius = 8;
 	
 	var color = d3.scaleOrdinal(d3.schemeCategory10);
 	
@@ -69,10 +89,9 @@ GraphViewer.prototype.draw = function() {
 	//add group for the zoom 
 	var g = svg.append("g")
 		.attr("class", "everything");
-	
-	var defs = g.append("svg:defs");
 
-	defs.selectAll("marker")
+	g.append("svg:defs")
+		.selectAll("marker")
 		.data(["arrow"])
 		.enter().append("svg:marker")
 		.attr("class", "arrowhead")
@@ -84,6 +103,41 @@ GraphViewer.prototype.draw = function() {
 		.attr("orient", "auto-start-reverse")
 		.append("svg:path")
 		.attr("d", "M0,-5L10,0L0,5");
+	
+	var legend = svg.append("g")
+		.attr("transform", "translate(5, 5)");
+
+	var legendEntry = legend.selectAll("g")
+		.data([...Array(this.groups()).keys()].splice(1))
+		.enter().append("g")
+		.attr("transform",
+			function(d) {
+				var x = 5;
+				var y = 5+(d-1)*6.5*2;
+				return "translate(" + x + ", " + y + ")";
+			}
+		);
+
+	legendEntry.append("circle")
+		.attr("r", 6)
+		.attr("class", "nodes")
+		.attr("cx", 0)
+		.attr("cy", 0)
+		.attr("fill", function(d) { return color(d); });
+
+	legendEntry.append("text")
+		.attr("x", 7)
+		.attr("y", 6/2)
+		.text(function(d) { return self.label(d-1) + " (" + self.labelCount(d-1) + ")"; })
+		.attr("class", "legend")
+		.on("mouseover", function(d) {
+			d3.selectAll(".__" + self.label(d-1))
+				.attr("r", radius+2);
+		})
+		.on("mouseout", function(d) {
+			d3.selectAll(".__" + self.label(d-1))
+				.attr("r", radius);
+		});
 
 	var link = g.append("g")
 		.attr("class", "links")
@@ -111,6 +165,7 @@ GraphViewer.prototype.draw = function() {
 
 	var linkText = link.append("text")
 		.attr("text-anchor", "middle")
+		.attr("class", "legend")
 		.text(d => d.type);
 
 	var node = g.append("g")
@@ -125,7 +180,7 @@ GraphViewer.prototype.draw = function() {
 		);
 
 	node.append("circle")
-		.attr("r", 7)
+		.attr("r", radius-1)
 		.attr("fill", function(d) { return color(d.group); })
 		.on("dblclick", function(d) {
 			if(!d.dragged) {
@@ -134,11 +189,14 @@ GraphViewer.prototype.draw = function() {
 				d3.event.stopPropagation();
 			}
 		})
+		.attr("class", function(d) {
+			return "__" + d.labels[0] || "No Label";
+		})
 		.append("title")
 		.text(function(d) { return JSON.stringify(d); });;
 
 	node.append("text")
-		.attr("class", "nodetext")
+		.attr("class", "nodetext legend")
 		.text(function(d) {
 			return d.properties["name"];
 		})
@@ -160,8 +218,8 @@ GraphViewer.prototype.draw = function() {
 			.attr("y2", function(d) { return d.target.y; });
 
 		linkText
-			.attr("x", function(d) { return d.source.x+((d.target.x-d.source.x)/2)+3.5; })
-			.attr("y", function(d) { return d.source.y+((d.target.y-d.source.y)/2)+3.5; })
+			.attr("x", function(d) { return d.source.x+((d.target.x-d.source.x)/2)+(radius/2-.5); })
+			.attr("y", function(d) { return d.source.y+((d.target.y-d.source.y)/2)+(radius/2-.5); })
 			.attr("transform", function(d) {
 				var deltaX = d.target.x-d.source.x;
 				var deltaY = d.target.y-d.source.y;
