@@ -17,3 +17,15 @@
 	text-shadow:1px 1px 5px gray, 1px 1px 5px gray;
 	text-align:center;
 }
+
+.legend:hover {
+	font-weight: bold;
+}
+
+.legend {
+	cursor: default;
+}
+
+.textHover {
+	font-weight: bold;
+}
