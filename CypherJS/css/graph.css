@@ -1,10 +1,19 @@
 .nodes circle {
-	stroke: lightgray;
-	stroke-width: 1.5px;
+	stroke: #999;
+	stroke-width: 1px;
 }
 
 .links line {
 	stroke: #999;
 	stroke-opacity: 0.6;
-	stroke-width: 3px;
+	stroke-width: 1.7px;
+}
+
+.arrowhead {
+	fill: #999;
+}
+
+.nodetext {
+	text-shadow:1px 1px 5px gray, 1px 1px 5px gray;
+	text-align:center;
 }
