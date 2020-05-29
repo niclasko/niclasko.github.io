@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<head>
+    <title>Cubic.js</title>
+
+    <script type="text/javascript" src="./js/Cubic.js"></script>
+
+    <script type="text/javascript">
+        var cubic;
+
+        function init() {
+            cubic = new Cubic("canvas");
+            cubic.createPlane();
+            cubic.createCube();
+            cubic.create3DObject();
+            cubic.rotate(5, 10);
+        }
+    </script>
+</head>
+    <body onload="init();">
+        <div id="canvas"></div>
+    </body>
+</html>
