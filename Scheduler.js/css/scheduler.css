@@ -1,0 +1,113 @@
+.schedulerContainer {
+    font: 10px Verdana, Arial, sans-serif;
+    position: relative;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+.schedulerTable {
+    position: relative;
+    table-layout: fixed;
+    border-spacing: 0px;
+    font-weight: bold;
+    text-align: left;
+    top: 0px;
+    left: 0px;
+}
+
+.schedulerTable tr:nth-child(odd)>th {
+    background-color: white;
+    top: 0px;
+    position: sticky;
+    z-index: 3;
+}
+
+.schedulerTable tr:nth-child(even)>th {
+    background-color: #f2f2f2;
+    top: 12px;
+    position: sticky;
+    z-index: 3;
+    border-bottom: solid 1px lightgray;
+}
+
+.frozenColumn {
+    left: 0px;
+    z-index: 3 !important;
+    position: sticky !important;
+    border-right: solid 1px lightgray;
+}
+
+.frozenColumnTopLeft {
+    left: 0px;
+    z-index: 4 !important;
+    position: sticky !important;
+    border-right: solid 1px lightgray;
+}
+
+.resourceLossTable td, th {
+    white-space: nowrap;
+    padding: 0px;
+}
+
+.resourceLossTable th {
+    text-align: left;
+}
+
+.resourceLossTable tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.schedulerTable td {
+    position: relative;
+    white-space: nowrap;
+    padding: 0px;
+}
+
+.schedulerTable tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.schedulerTable tr:nth-child(odd) {
+    background-color: white;
+}
+
+.schedulerTable tr:nth-child(even)>td {
+    background-color: #f2f2f2;
+}
+
+.schedulerTable tr:nth-child(odd)>td {
+    background-color: white;
+}
+
+.schedulerTableCell {
+    border-right: 1px solid lightgray;
+    padding: 0px;
+    border-collapse: collapse;
+}
+
+.filler {
+    width: 33px !important;
+}
+
+.interval {
+    position: absolute;
+    background-color: dimgray;
+    border-radius: 3px;
+    top: 0;
+    z-index: 2;
+    height: 100%;
+    cursor: grab;
+    font-size: xx-small;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.interval_moving {
+    cursor: grabbing;
+}
+
+.interval_right_edge {
+    cursor: ew-resize;
+    height: 100%;
+    width: 5px;
+    float: right;
+}
