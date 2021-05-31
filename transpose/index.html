@@ -1,0 +1,210 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=11" />
+
+		<title>
+			Transpose
+		</title>
+		<style type="text/css">
+
+			body, textarea, input, select, table {
+				font-family:"Verdana", Verdana, Sans-serif;
+				font-size:x-small;
+			}
+			
+			.input_text {
+				padding-left: 1px;
+				border-style: solid;
+				border-color: black;
+				border-width: 1px;
+				font-family: helvetica, arial, sans serif;
+				padding-left: 1px;
+				font-family: monospace;
+			}
+			
+			#drop_zone {
+			    border: 2px dashed #BBBBBB;
+			    border-radius: 5px 5px 5px 5px;
+			    color: #BBBBBB;
+			    padding: 25px;
+			    text-align: center;
+				width: 70px;
+			}
+
+			.filterBox {
+			    border: 1px solid #BBBBBB;
+			    border-radius: 5px 5px 5px 5px;
+				margin-bottom: 2px;
+				width: 135px;
+				white-space: nowrap;
+				z-index: 100;
+				position: fixed;
+				background-color: white;
+			}
+
+			a {
+				text-decoration: none;
+				color: #4A4344;
+			}
+
+			.t {
+				border-spacing:0;
+				border-collapse:collapse;
+			}
+
+			.top {
+			   background-color: white;
+			   z-index: 3;
+			   width: 100%;
+			   height: 60px;
+			   float: left;
+			   position: fixed;
+				top: 25px;
+			}
+
+			.bottom {
+			   height: 100%;
+			   width: 100%;
+			   z-index: 1;
+			   position: relative;
+				top: 82px;
+			}
+
+			.fixed {
+			   position: fixed;
+			}
+
+			.menu {
+				background-color: #EDEDED;
+				-webkit-box-shadow: 4px 4px 3px rgba(0, 0, 0, 0.66);
+				-moz-box-shadow:    4px 4px 3px rgba(0, 0, 0, 0.66);
+				box-shadow:         4px 4px 3px rgba(0, 0, 0, 0.66);
+				position: absolute;
+				z-index: 12000;
+			}
+
+		</style>
+		<script src="date.js"></script>
+		<script src="trie.js"></script>
+		<script src="jquery.js"></script>
+		<script src="pivot.min.js"></script>
+		<script src="timer.js"></script>
+		<link rel="stylesheet" href="jquery-ui.css" />
+		<script src="jquery-ui.js"></script>
+		<script src="jquery.ui.touch-punch.min.js"></script>
+		<script src="moment.min.js"></script>
+		<script src="crosstabgui.js"></script>
+		<script src="d3.v3.min.js"></script>
+		<script src="dimple.v1.1.2.min.js"></script>
+	</head>
+	<body onload="pageInit();" style="margin-top: 0px;">
+		<div id="container" style="width: 100%; height: 100%;" onclick="if(menuClickCount == 0) { clearMenu(); } else if(menuClickCount > 0) { menuClickCount = 0; }">
+			<table class="t" style="width: 100%;">
+				<tr id="menubar" style="background-color: white;">
+					<td colspan="2">
+						<div id="scrollbleedthroughblocker" style="width: 100%; height: 60px; position: fixed; z-index: 2; background-color: white; top: 0px;"><div>
+						<table style="width: 98%; background-color: #E8E8E8; position: fixed; z-index: 2;">
+							<tr>
+								<td style="text-align: left;">
+									<b><a href="javascript:void(null)" onclick="showSplashScreen();">Transpose<sub> <font style="color: gray">beta</font></sub></a></b> | <a href="./help/" target="_blank"><img src="help.png" style="width: 12px; height: 12px;"></a>&nbsp;<output id="list"></output>
+								</td>
+								<td style="text-align: right;">
+									<a id="hrefListAllData" href="javascript:void(null)" style="display: none;" onclick="worker.postMessage({'action': 'listAllData'});">List all data</a>&nbsp;
+									<span id="info"></span>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<tr valign="top">
+					<td width="140">
+						<span style="position: fixed; top: 25px; z-index: 3;">
+							<div id="drop_zone">Drop data file here</div>
+							<div id="loadedDataset" style="display: none;">
+								<a href="javascript:void(null)" onclick="clearPivot();">Clear Pivot</a><br>
+								<a href="javascript:void(null)" onclick="showQuickStartGuide();">Show Quick Start Guide</a><br><br>
+								<b>Fields</b>&nbsp;<a href="javascript:void(null)" onclick="menuClickCount++; showFieldsMenu(event);">&gt;</a>
+								<div id="fields" style="height: 400px; overflow-y: auto; width: 140px; overflow-x: auto;"></div><br>
+							</div>
+						</span>
+					</td>
+					<td>
+						<div class="top" id="crosstabConfig">
+							<table>
+								<tr>
+									<td style="width: 70px; text-align: left;">
+										<a id="hrefRows" href="javascript:void(null)" onclick="selectFieldTarget(this, 'rows');">Rows</a> <a href="javascript:void(null)" onclick="menuClickCount++; showRowsMenu(event);">&gt;</a>
+									</td>
+									<td id="rows">
+									</td>
+								</tr>
+								<tr>
+									<td style="width: 70px; text-align: left;">
+										<a id="hrefColumns" href="javascript:void(null)" onclick="selectFieldTarget(this, 'columns');">Columns</a> <a href="javascript:void(null)" onclick="menuClickCount++; showColumnsMenu(event);">&gt;</a>
+									</td>
+									<td id="columns">
+									</td>
+								</tr>
+								<tr>
+									<td style="width: 70px; text-align: left;">
+										<a id="hrefMeasures" href="javascript:void(null)" onclick="selectFieldTarget(this, 'measures');">Measures</a> <a href="javascript:void(null)" onclick="menuClickCount++; showMeasuresMenu(event);">&gt;</a>
+									</td>
+									<td id="measures">
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div id="output" class="bottom"></div>
+					</td>
+				</tr>
+			</table>
+			<div id="upload" title="Load data" style="display: none;">
+				<b>Field separator</b>&nbsp;<input type="text" id="fieldSeparator" value="" size="1" onchange="sampleFile(_fileSampleData);">&nbsp;Click fields to toggle type. <img src="dimension.png"> = Dimension, <img src="measure.png"> = Measure, <img src="calendar.png"> = Date/Time<br>
+				<b>File contents</b><br>
+				<div id="fileSampleContents" style="overflow: scroll; height: 400px; width: 680px; display: none;"></div>
+				<span id="readFilePanel" style="display: none">
+					<input type="button" value="Load data" onclick="readFile(); $('#upload').dialog('close'); $('#fileSampleContents').hide();">
+				</span>
+			</div>
+			<div id="getstarted" style="display: none;">
+				<b>Quickly Get Started creating insightful pivot tables</b><br>
+				Click <i>Rows</i> or <i>Columns</i> above and then click a dimension from the Fields list.<br>
+				Click <i>Measures</i> above and then click a measure from the Fields list<br>
+				Datetime-fields can be expanded by clicking the (+) to the left of the field. This will allow you to use additional datetime-metadata as dimension fields<br><br>
+				Add dimension filters by clicking the filter-icon (<img src="filter.png">) to the right of a dimension field.<br>
+				Add measure filters by clicking the right-arrow (&gt;) to the right of a measure field and then click "Add filter" from the menu.<br><br>
+				Click help-icon above for more elaborate usage guides.
+			</div>
+			<div id="splash_screen" style="display: none">
+				<span style="font-size: large; font-style: bold;">Transpose<sub> <font style="color: gray">beta</font></sub></span><br><br>
+				Want a data analysis tool where you can simply load a data file with one click and then get started creating insightful pivot tables? All this right in your browser so there’s no need to install any software? Look no further.<br><br>
+				Click the help-icon above for an example of how to use the tool, or if you don't like reading manuals then just drag a data file onto the drop-area in the top left corner to get started.<br><br>
+				<input type="button" value="Ok" onclick="$('#splash_screen').dialog('close');">
+			</div>
+			<div id="explainDialog" title="Explain concept" style="display: none;">
+				Explain the concept <b><span id="explainDialog_targetConcept"></span></b> with the attributes:<br>
+				<div id="explainDialog_attributes" style="overflow-y: auto; height: 150px;"></div><br><br>
+				What do you want to call the explanation?&nbsp;<input id="explainDialog_explanationName" type="text" value=""><br>
+				<input type="button" id="explainDialog_doExplain" onclick="doExplain(); $('#explainDialog').dialog('close');" value="Explain">
+			</div>
+			<div id="explanationDialog" title="Explain and predict" style="display: none;">
+				The following rules explain the concept of <b><span id="explanationDialog_targetConcept"></span></b>.<br>
+				<div id="explanationDialog_ruleListHeader"></div>
+				<div id="explanationDialog_ruleList" style="overflow-x: auto; overflow-y: auto; height: 200px;"></div><br>
+				<table>
+					<tr valign="top">
+						<td>
+							Above rules explain the concept correctly for <b><span id="explanationDialog_ruleAccuracy"></span></b> of the currently loaded data set.
+						</td>
+						<td>
+							Confusion matrix:<br>
+							<span id="explanationDialog_confusionMatrix"></span>
+						</td>
+					</tr>
+				</table>
+				<input type="button" id="explanationDialog_close" onclick="$('#explanationDialog').dialog('close');" value="Close">
+			</div>
+		</div>
+	</body>
+</html>

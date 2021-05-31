@@ -1,0 +1,66 @@
+<html>
+	<head>
+		<title>
+			TRIE Test
+		</title>
+		<style type="text/css">
+			body, table, textarea, input, select, pre {
+				font-family:"Verdana", Verdana, Sans-serif;
+				font-size:x-small;
+			}
+		</style>
+		<script src="jquery.js"></script>
+		<script src="trie.js"></script>
+		<script type="text/javascript">
+
+			function initialize() {
+
+			}
+
+			function checkForQueryChange() {
+				if(loading) {
+					return;
+				}
+				var r = '', entryList = trie.query($('#txtQuery').val(), false);
+				for(var i in entryList) {
+					r += entryList[i] + '\n';
+				}
+				$('#output').text(r);
+			}
+
+			function clear() {
+				$('#txtQuery').val('');
+			}
+
+			function listEntries() {
+				var t = '';
+				for(var i=0; i<trie.entries.length; i++) {
+					t += trie.entries[i] + '\n';
+				}
+				$('#entries').text(t);
+			}
+
+			var trie = new Trie(false, false);
+			var loading = false;
+
+			setInterval(checkForQueryChange, 100);
+
+		</script>
+	</head>
+	<body onload="clear(); initialize();">
+		Simply type and click enter to add strings. While you type list of entries will be searched and return the matching entries under hits.<br>
+		<table>
+			<tr valign="top">
+				<td>
+					<input type="text" value="" id="txtQuery" onkeydown="if(event===undefined) event= window.event; if(event.keyCode == 13) { trie.addString($('#txtQuery').val()); $('#txtQuery').val(''); listEntries(); }"></br>
+					<b>Hits</b><br>
+					<pre id="output"></pre>
+				</td>
+				<td>
+					<b>Entries</b><br>
+					<pre id="entries"></pre>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
