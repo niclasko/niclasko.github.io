@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<title>
+			How to share a Dropbox file via Transpose
+		</title>
+		<style type="text/css">
+			body, table, textarea, input, select, pre {
+				font-family:"Verdana", Verdana, Sans-serif;
+				font-size:small;
+			}
+		</style>
+		<script type="text/javascript">
+
+				  var _gaq = _gaq || [];
+				  _gaq.push(['_setAccount', 'UA-47829394-1']);
+				  _gaq.push(['_trackPageview']);
+
+				  (function() {
+				    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+				  })();
+
+		</script>
+	</head>
+	<body>
+		<ol>
+			<li>
+				In your file explorer right-click (Windows) / doublefinger-click (Mac) a Dropbox file and then click "Share Dropbox Link"<br><br>
+				<img src="dropbox_1.png"><br><br>
+			</li>
+			<li>
+				The following notification will appear on your screen. Click it<br><br>
+				<img src="dropbox_2.png"><br><br>
+			</li>
+			<li>
+				A Dropbox web page will appear. Right-click / doublefinger-click the Download button and click "Copy Link Location"<br><br>
+				<img src="dropbox_3.png"><br><br>
+			</li>
+			<li>
+				Paste the link you just copied in the following text box <input id="linktext" type="text" size="60"> and click <a href="javascript:void(null)" onclick="var l = document.getElementById('link'); var t = document.getElementById('linktext'); l.innerHTML = 'drilldown.se/transpose/?' + t.value; l.href = 'http://drilldown.se/transpose/?' + t.value;">here</a> to generate the final link which will appear below.<br><br>
+				<a id="link" href=""></a>
+			</li>
+		</ol>
+	</body>
+</html>
