@@ -504,7 +504,7 @@ function Scheduler(_container) {
         self.duration;
 
         var initialize = function() {
-            offsetLeft = resourceMatrixEntry.element().offsetLeft-1;
+            offsetLeft = resourceMatrixEntry.element().offsetParent.offsetLeft + resourceMatrixEntry.element().offsetLeft-1;
             left = 0;
             offsetTop = resourceMatrixEntry.element().offsetParent.offsetTop + resourceMatrixEntry.element().offsetTop;
             width = (scheduler.getTimeCellWidth()*2);
