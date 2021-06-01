@@ -282,6 +282,7 @@ function Scheduler(_container) {
     var addInterval = function(e, resourceMatrixEntry) {
         //e.target.appendChild(createInterval(resourceMatrixEntry));
         containerElement.appendChild(createInterval(resourceMatrixEntry));
+        runCallBacks();
     };
     
     var renderIntervals = function() {
