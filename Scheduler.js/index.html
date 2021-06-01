@@ -18,7 +18,7 @@
 	</head>
 	<body onload="loadScheduler();">
 		Double-click in the grid to add time intervals. Click and drag to change. Change length by resizing at end of interval.<br><br><br>
-		<a href="var resourceName = ''; while((resourceName = prompt('Add resource')) != '') { ; } scheduler.addResource(resourceName);">Add resource</a><br>
+		<a href="javascript:void(null)" onclick="var resourceName = ''; while((resourceName = prompt('Add resource')) != '') { ; } scheduler.addResource(resourceName);">Add resource</a><br>
 		<div id="view"></div>
 	</body>
 </html>
