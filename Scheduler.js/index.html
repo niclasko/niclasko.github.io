@@ -6,14 +6,6 @@
 		<script type="text/javascript" src="js/Scheduler.js"></script>
 		<script type="text/javascript">
 			var scheduler;
-			function loadScheduler() {
-				scheduler = new Scheduler("view");
-				scheduler.addResource("Resource 1");
-				scheduler.addResource("Resource 2");
-				scheduler.addResource("Resource 3");
-				scheduler.setTimeline(new Date(2019, 11, 12, 19, 0, 0, 0), 3);
-				scheduler.render();
-			}
 			
 			function outputIntervals() {
 				var html = "<div>";
@@ -33,6 +25,17 @@
 				}
 				html += "</div>";
 				document.getElementById("intervals").innerHTML = html;
+			}
+			
+			function loadScheduler() {
+				scheduler = new Scheduler("view");
+				scheduler.addResource("Resource 1");
+				scheduler.addResource("Resource 2");
+				scheduler.addResource("Resource 3");
+				scheduler.setTimeline(new Date(2019, 11, 12, 19, 0, 0, 0), 3);
+				scheduler.render();
+				
+				scheduler.addCallBack(outputIntervals);
 			}
 		</script>
 	</head>
