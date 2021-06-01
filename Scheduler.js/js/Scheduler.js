@@ -480,7 +480,7 @@ function Scheduler(_container) {
         var initialize = function() {
             offsetLeft = resourceMatrixEntry.element().offsetLeft-1;
             left = 0;
-            offsetTop = resourceMatrixEntry.element().offsetTop;
+            offsetTop = resourceMatrixEntry.element().offsetParent.offsetTop + resourceMatrixEntry.element().offsetTop;
             width = (scheduler.getTimeCellWidth()*2);
             element = document.createElement("div");
             element.style.width = width+"px";
