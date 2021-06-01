@@ -271,6 +271,15 @@ function Scheduler(_container) {
         //e.target.appendChild(createInterval(resourceMatrixEntry));
         containerElement.appendChild(createInterval(resourceMatrixEntry));
     };
+    
+    var renderIntervals = function() {
+        for(var i=0; i<resources.length; i++) {
+            var intervals = resources[i].getIntervals();
+            for(var j=0; j<intervals.length; j++) {
+                containerElement.appendChild(intervals[j].element());
+            }
+        }
+    };
 
     var createResourceMatrix = function() {
         for(var i=0; i<resources.length; i++) {
@@ -301,6 +310,8 @@ function Scheduler(_container) {
 
         endTag();
         setTimeCellWidth();
+        
+        renderIntervals();
     };
 
     this.getIntervals = function() {
