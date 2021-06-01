@@ -22,6 +22,8 @@ function Scheduler(_container) {
     var timeCellWidth = 0;
     var cellHeight = 0;
     var minutesPerPixel = 0;
+    
+    var callBacks = [];
 
     this.setTimeline = function(_start, _days) {
         start = _start;
@@ -49,6 +51,16 @@ function Scheduler(_container) {
         }
         for(var i=0; i<resource.timeSlotCount(); i++) {
             resource.setData(i, dataKey, data[i]);
+        }
+    };
+    
+    this.addCallBack = function(callBack) {
+        callBacks.push(callBack);  
+    };
+    
+    this.runCallBacks = function() {
+        for(var i=0; i<callBacks.length; i++) {
+            callBacks[i]();   
         }
     };
 
@@ -533,6 +545,7 @@ function Scheduler(_container) {
         var setFromTo = function() {
             setFrom();
             setTo();
+            scheduler.runCallBacks();
         };
         var setFrom = function() {
             from.set(originalFrom);
