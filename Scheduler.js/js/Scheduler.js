@@ -282,7 +282,6 @@ function Scheduler(_container) {
     var addInterval = function(e, resourceMatrixEntry) {
         //e.target.appendChild(createInterval(resourceMatrixEntry));
         containerElement.appendChild(createInterval(resourceMatrixEntry));
-        runCallBacks();
     };
     
     var renderIntervals = function() {
@@ -536,6 +535,8 @@ function Scheduler(_container) {
 
             setLabel();
             setAffectedTimeSlots();
+            setLabel();
+            scheduler.runCallBacks();
         };
         var getIntervalLeft = function() {
             return parseFloat(element.style.left.replace("px", "")) - (offsetLeft*1.0);
