@@ -16,16 +16,22 @@
 			}
 			
 			function outputIntervals() {
-				var html = "<table>";
+				var html = "<div>";
 				var resources = scheduler.getResources();
 				var intervals = null;
+				var resource = null;
+				var label = null;
 				for(var i=0; i<resources.length; i++) {
-					intervals = resources[i].getIntervals();
-					for(var j=0; i<intervals.length; j++) {
-						html += "<tr><td>" + intervals[j].label + "</td></tr>";
+					resource = resources[i];
+					intervals = resource.getIntervals();
+					if(intervals.length == 0) continue;
+					html += "<div><u>" + resource.resourceName() + "</u></div>";
+					for(var j=0; j<intervals.length; j++) {
+						label = intervals[j].label;
+						html += "<div>&nbsp;&nbsp;" + label.date + ", " + label.timeSpan + " (" + label.duration + ")</div>";
 					}
 				}
-				html += "</table>";
+				html += "</div>";
 				document.getElementById("intervals").innerHTML = html;
 			}
 		</script>
