@@ -276,7 +276,7 @@ function Scheduler(_container) {
         for(var i=0; i<resources.length; i++) {
             var intervals = resources[i].getIntervals();
             for(var j=0; j<intervals.length; j++) {
-                containerElement.appendChild(intervals[j].element());
+                containerElement.appendChild(intervals[j].getElement());
             }
         }
     };
