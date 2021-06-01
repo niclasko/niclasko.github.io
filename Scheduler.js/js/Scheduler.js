@@ -359,6 +359,9 @@ function Scheduler(_container) {
             resourceMatrixEntries[timeSlotIndex] = new ResourceMatrixEntry(
                 resourceIndex, timeSlotIndex, startTime, self, scheduler);
         };
+        this.getIntervals = function() {
+            return resourceIntervals;  
+        };
         this.addInterval = function(interval) {
             resourceIntervals.push(interval);
         };
