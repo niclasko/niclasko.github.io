@@ -7,18 +7,33 @@
 		<script type="text/javascript">
 			var scheduler;
 			function loadScheduler() {
-        scheduler = new Scheduler("view");
-        scheduler.addResource("Resource 1");
-        scheduler.addResource("Resource 2");
-        scheduler.addResource("Resource 3");
-        scheduler.setTimeline(new Date(2019, 11, 12, 19, 0, 0, 0), 3);
-        scheduler.render();
-      }
+				scheduler = new Scheduler("view");
+				scheduler.addResource("Resource 1");
+				scheduler.addResource("Resource 2");
+				scheduler.addResource("Resource 3");
+				scheduler.setTimeline(new Date(2019, 11, 12, 19, 0, 0, 0), 3);
+				scheduler.render();
+			}
+			
+			function outputIntervals() {
+				var html = "<table>";
+				var resources = scheduler.getResources();
+				var intervals = null;
+				for(var i=0; i<resources.length; i++) {
+					intervals = resources[i].getIntervals();
+					for(var j=0; i<intervals.length; j++) {
+						html += "<tr><td>" + intervals[j].label + "</td></tr>";
+					}
+				}
+				html += "</table>";
+				document.getElementById("intervals").innerHTML = html;
+			}
 		</script>
 	</head>
 	<body onload="loadScheduler();">
 		Double-click in the grid to add time intervals. Click and drag to change. Change length by resizing at end of interval.<br><br><br>
 		<a href="javascript:void(null)" onclick="var resourceName = ''; while((resourceName = prompt('Add resource')) === '') { ; } scheduler.addResource(resourceName); scheduler.render();">Add resource</a><br>
-		<div id="view"></div>
+		<div id="view"></div><br>
+		<div id="intervals"></div>
 	</body>
 </html>
