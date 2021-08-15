@@ -1,0 +1,40 @@
+<html>
+	<head>
+		<title>Auto-complete</title>
+		<script src="trie.js" type="text/javascript"></script>
+		
+		<script>
+			
+			var trie;
+			
+			var dictionary = ["covariance", "covid-19", "coventry",
+							"convolution", "covariate", "company",
+							"microsoft", "office", "data science",
+							"machine learning", "machine head",
+							"macchiato", "capuccino"];
+			
+			function _init() {
+				trie = new Trie();
+				for(var i=0; i<dictionary.length; i++) {
+					trie.addString(dictionary[i]);
+				}
+			}
+			
+			function ac(q) {
+				var o = document.getElementById("results");
+				o.innerHTML = "";
+				var h = "";
+				var r = trie.query(q);
+				for(var i=0; i<r.length; i++) {
+					h += r[i].entry + "<br>";
+				}
+				o.innerHTML = h;
+			}
+		</script>
+		
+	</head>
+	<body onload="_init();">
+		<input type="text" placeholder="Please start typing..." onkeyup="ac(this.value);">
+		<div id="results"></div>
+	</body>
+</html>
