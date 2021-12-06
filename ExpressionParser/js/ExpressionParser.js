@@ -1,4 +1,25 @@
+/*
+* ExpressionParser.js formulae engine
+* Copyright (c) 2021 "Niclas Kjall-Ohlsson"
+* 
+* This file is part of ExpressionParser.js.
+* 
+* ExpressionParser.js is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* ExpressionParser.js is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with ExpressionParser.js.  If not, see <https://www.gnu.org/licenses/>.
+*/
 function ExpressionParser() {
+
+	var self = this;
 	
 	var expression = null;
 	var position = 0;
@@ -6,16 +27,28 @@ function ExpressionParser() {
 	var token = '';
 	
 	var parenthesesDepth = 0;
+
+	var allowedVariableCharacters = "abcdefghijlkmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ_";
+
+	var variables = {};
 	
 	// For Shunting Yard Algorithm
+	var expressionStack = [];
 	var output = [];
 	var operators = [];
 	
 	var expressionTreeRoot = null;
+	var expressionTrees = [];
+
+	var longestListLength = 0;
 	
 	this.parse = function(_expression) {
+		longestListLength = 0;
 		expression = _expression;
-		parseToken();
+		if(parseAssignment()) {
+			return;
+		}
+		parseExpression();
 		finish();
 	};
 	
@@ -23,7 +56,14 @@ function ExpressionParser() {
 		if(expressionTreeRoot == null) {
 			return null;
 		}
-		return expressionTreeRoot.value();
+		var result = [];
+		if(longestListLength == 0) {
+			longestListLength = 1;
+		}
+		for(var i=0; i<longestListLength; i++) {
+			result.push(expressionTreeRoot.value());
+		}
+		return result;
 	};
 	
 	this.printTree = function() {
@@ -52,8 +92,56 @@ function ExpressionParser() {
 			}
 		}
 	};
+
+	var parseAssignment = function() {
+		if(parseVariable(true)) {
+			var variableName = token;
+			token = '';
+			if(_equals()) {
+				skip();
+				ignoreWhiteSpace();
+				if(!parseExpression()) {
+					throw exception("Expected expression.");
+				}
+				finish();
+				setVariable(
+					variableName,
+					new Variable(expressionTreeRoot)
+				);
+				return true;
+			}
+		}
+		reset();
+		return false;
+	};
+
+	this.getVariables = function() {
+		return variables;
+	};
+
+	var setVariable = function(variableName, value) {
+		variables[variableName] = value;
+	};
+
+	var newExpression = function() {
+		expressionStack.push({
+			"output": output,
+			"operators": operators,
+			"expressionTreeRoot": expressionTreeRoot
+		});
+		output = [];
+		operators = [];
+		expressionTreeRoot = null;
+	};
+
+	var endExpression = function() {
+		var currentExpression = expressionStack.pop();
+		output = currentExpression.output;
+		operators = currentExpression.operators;
+		expressionTreeRoot = currentExpression.expressionTreeRoot;
+	};
 	
-	var parseToken = function() {
+	var parseExpression = function() {
 		
 		var addedToken = false;
 		
@@ -63,7 +151,7 @@ function ExpressionParser() {
 			
 			accumulateLeftParentheses();
 			
-			if(!parseToken()) {
+			if(!parseExpression()) {
 				throw exception('Expected token or opening Parentheses.');
 			}
 			
@@ -83,6 +171,14 @@ function ExpressionParser() {
 			
 			addedToken = true;
 			
+		} else if(parseVariable()) {
+			
+			addedToken = true;
+
+		} else if(parseList()) {
+			
+			addedToken = true;
+
 		} else {
 			
 			throw exception("Expected token or opening Parentheses.");
@@ -91,7 +187,7 @@ function ExpressionParser() {
 		
 		ignoreWhiteSpace();
 		
-		if(more() && !parseOperator() && !(closingParentheses() && inParentheses()) && !comma()) {
+		if(more() && !parseOperator() && !(closingParentheses() && inParentheses()) && !comma() && !(closingSquareBracket())) {
 			throw exception("Expected operator.");
 		}
 		
@@ -105,7 +201,7 @@ function ExpressionParser() {
 			accumulate(accumulateNextN);
 			addToken(Operator.latestParsed);
 			
-			if(!parseToken()) {
+			if(!parseExpression()) {
 				throw exception('Expected token or opening Parentheses.');
 			}
 			return true;
@@ -130,7 +226,7 @@ function ExpressionParser() {
 					
 					var i = 0;
 					while(i < parameterCount) {
-						if(!parseToken()) {
+						if(!parseExpression()) {
 							throw exception('Expected token or opening Parentheses.');
 						}
 						if(more() && comma()) {
@@ -154,7 +250,7 @@ function ExpressionParser() {
 			return true;
 		}
 		return false;
-	}
+	};
 	var parseNumber = function() {
 		if(negation()) {
 			accumulate();
@@ -181,6 +277,74 @@ function ExpressionParser() {
 		addToken(new Number(parseFloat(token)));
 		return true;
 	};
+	var parseVariable = function(doNotAddToken) {
+		while(allowedVariableCharacter() && more()) {
+			accumulate();
+		}
+		if(emptyToken()) {
+			return false;
+		}
+		ignoreWhiteSpace();
+		if(doNotAddToken == undefined) {
+			addToken(getVariable(token));
+		}
+		return true;
+	};
+	var getVariable = function(variableName) {
+		if(variables[variableName] == undefined) {
+			throw exception('Variable ' + variableName + ' is not defined.');
+		}
+		var variable = variables[variableName];
+		setListStats(variable.node());
+		return variable;
+	};
+	var allowedVariableCharacter = function() {
+		return allowedVariableCharacters.indexOf(currentChar()) > -1;
+	};
+	var parseList = function() {
+		if(openingSquareBracket()) {
+			skip();
+			ignoreWhiteSpace();
+			var list = new List();
+			while(true) {
+				ignoreWhiteSpace();
+				newExpression();
+				if(!parseExpression()) {
+					throw exception("Expected expression.");
+				}
+				finish(true);
+				list.add(expressionTreeRoot.value());
+				endExpression();
+				setListStats(list);
+				if(!comma()) {
+					break;
+				}
+				skip();
+			}
+			if(closingSquareBracket()) {
+				skip();
+				addToken(list);
+				return true;
+			} else {
+				throw exception("Expected closing square bracket.");
+			}
+		}
+		return false;
+	};
+	var setListStats = function(n) {
+		var item = n;
+		if(n.f) {
+			item = n.f();
+		}
+		if(!item.isList) {
+			return;
+		}
+		item.reset();
+		longestListLength = Math.max(item.size(), longestListLength);
+	};
+	var emptyToken = function() {
+		return token.length == 0;
+	};
 	var currentChar = function() {
 		return expression.charAt(position);
 	};
@@ -202,6 +366,15 @@ function ExpressionParser() {
 	var inParentheses = function() {
 		return parenthesesDepth > 0;
 	};
+	var openingSquareBracket = function() {
+		return currentChar() == '[';
+	};
+	var closingSquareBracket = function() {
+		return currentChar() == ']';
+	};
+	var _equals = function() {
+		return currentChar() == '=';
+	};
 	var negation = function() {
 		return currentChar() == '-';
 	};
@@ -222,6 +395,10 @@ function ExpressionParser() {
 	};
 	var more = function() {
 		return position < expression.length;
+	};
+
+	var skip = function() {
+		position++;
 	};
 	
 	var accumulate = function(accumulateNextN) {
@@ -264,6 +441,10 @@ function ExpressionParser() {
 		
 		if(atom.f().isNumber) {
 			output.push(atom);
+		} else if(atom.f().isVariable) {
+			output.push(atom);
+		} else if(atom.f().isList) {
+			output.push(atom);
 		} else if(atom.f().isFunction) {
 			operators.push(atom);
 		} else if(atom.f().isComma) {
@@ -297,7 +478,7 @@ function ExpressionParser() {
 		return tokens[tokens.length-1];
 	};
 	
-	var finish = function() {
+	var finish = function(doNotResetPosition) {
 		while(operators.length != 0) {
 			output.push(operators.pop());
 		}
@@ -317,6 +498,19 @@ function ExpressionParser() {
 			expressionTreeNodes.push(output[i]);
 		}
 		expressionTreeRoot = expressionTreeNodes.pop();
+		expressionTrees.push(expressionTreeRoot);
+		reset(doNotResetPosition);
+	};
+
+	var reset = function(doNotResetPosition) {
+		if(!doNotResetPosition) {
+			position = 0;
+		}
+		token = '';
+	};
+
+	this.getExpressionTrees = function() {
+		return expressionTrees;
 	};
 	
 	var got = function() {
@@ -324,6 +518,7 @@ function ExpressionParser() {
 	};
 	
 	var exception = function(message) {
+		reset();
 		return message + got();
 	};
 	
@@ -380,6 +575,32 @@ function ExpressionParser() {
 		function Number(n) {
 			this.value = function() { return n; };
 			this.isNumber = true;
+		};
+	};
+
+	List: {
+		function List() {
+			var list = [];
+			var currentIndex = 0;
+			this.value = function() {
+				if(currentIndex >= list.length) {
+					currentIndex = 0;
+				}
+				return list.length > 0 ? list[currentIndex++] : null;
+			};
+			this.add = function(item) { list.push(item); }
+			this.size = function() { return list.length; }
+			this.reset = function() { currentIndex = 0; }
+			this.isList = true;
+		};
+	};
+
+	Variable: {
+		function Variable(node) {
+			var self = this;
+			self.node = function() { return node; }
+			self.value = function() { return node.value(); };
+			self.isVariable = true;
 		};
 	};
 	
